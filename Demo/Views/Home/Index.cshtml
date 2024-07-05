@@ -1,0 +1,298 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+<div class="container">
+    <h2>Employees Record</h2>
+    <button type="button" class="btn btn-primary" id="myModalAdd" data-toggle="modal" data-target="#myModal" onclick="clearTextBox();">Add New Node</button><br /><br />
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>
+                    Name
+                </th>
+                <th>
+                    Action
+                </th>
+            </tr>
+        </thead>
+        <tbody id="tbody">
+        </tbody>
+    </table>
+</div>
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">×</button>
+                <h4 class="modal-title" id="myModalLabel">Add Node</h4>
+            </div>
+            <div class="modal-body">
+                <form>
+                    <div class="form-group" style="display:none">
+                        <label for="nodeID">ID</label>
+                        <input type="text" class="form-control" id="nodeID" placeholder="Id" disabled="disabled" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Name">Name</label>
+                        <input type="text" class="form-control" id="Name" placeholder="Name" />
+                    </div>
+                    <div class="form-group">
+                        <label for="Age">Parent Node</label>
+                        <select id="ParentNode" class="form-control">
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" id="btnAdd" onclick="return Add();">Submit</button>
+                <button type="button" class="btn btn-primary" id="btnUpdate" style="display:none;" onclick="Update();">Update</button>
+                <button type="button" class="btn btn-default" data-dismiss="modal" id="btnClosePopup">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="~/Scripts/jquery-3.7.0.js"></script>
+<script src="~/Scripts/bootstrap.js"></script>
+<script src="~/Scripts/bootstrap.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js">
+
+</script>
+<script>
+    var tmp = "";
+    $(document).ready(function () {
+        $("#btnClosePopup").click(function () {
+            $("#myModal").modal("hide");
+        });
+        $("#myModalAdd").click(function () {
+            $('#myModal').modal('show');
+        });
+        loadData();
+        //$("#State").change(function () {
+        //    var StateId = parseInt($(this).val());
+
+        //    if (!isNaN(StateId)) {
+        //        var ddlState = $('#City');
+        //        ddlState.empty();
+        //        ddlState.append($("<option></option>").val('').html('Please wait ...'));
+        //        $.ajax({
+        //            url: "/Home/GetCityList",
+        //            type: 'GET',
+        //            dataType: 'json',
+        //            data: { StateId: StateId },
+        //            success: function (d) {
+
+        //                ddlState.empty(); // Clear the please wait
+        //                ddlState.append($("<option></option>").val('').html('Select City'));
+        //                $.each(d, function (i, states) {
+        //                    ddlState.append($("<option></option>").val(states.CityId).html(states.CityName));
+        //                });
+        //                if (tmp != "") {
+        //                    $('#City').val(tmp);
+        //                }
+        //            },
+        //            error: function () {
+        //                alert('Error!');
+        //            }
+        //        });
+        //    }
+
+
+        //});
+        //$('#Agree').change(function () {
+        //    if ($(this).is(':checked')) {
+        //        $('#btnAdd').prop('disabled', false);
+        //    }
+        //    else {
+        //        $('#btnAdd').prop('disabled', true);
+        //    }
+        //});
+    });
+
+    //load State
+    var ParentNode = $('#ParentNode');
+    ParentNode.append($("<option></option>").val('').html('Please Select Parent Node'));
+    $.ajax({
+        url: "/Home/List",
+        type: 'GET',
+        dataType: 'json',
+        success: function (d) {
+            $.each(d, function (i, country) {
+                ParentNode.append($("<option></option>").val(country.nodeId).html(country.nodeName));
+            });
+        },
+        error: function () {
+            alert('Error!');
+        }
+    });
+    //Change State
+
+
+    //Load Data function
+    function loadData() {
+        $.ajax({
+            url: "/Home/List",
+            type: "GET",
+            contentType: "application/json;charset=utf-8",
+            dataType: "json",
+            success: function (result) {
+                debugger
+                var html = '';
+                $.each(result, function (key, item) {
+                    html += '<tr>';
+                    //html += '<td>' + item.EmployeeID + '</td>';
+                    html += '<td>' + item.nodeName + '</td>';
+                    html += '<td><a href="#" onclick="return getbyID(' + item.nodeId + ')">Edit</a> | <a href="#" onclick="Delele(' + item.nodeId + ')">Delete</a></td>';
+                    html += '</tr>';
+                });
+                $("#tbody").html('');
+                $("#tbody").html(html);
+            },
+            error: function (errormessage) {
+                alert(errormessage.responseText);
+            }
+        });
+    }
+
+    //Add Data Function
+    function Add() {
+        var res = validate();
+        if (res == false) {
+            return false;
+        }
+        var nodeObj = {
+            nodeName: $('#Name').val(),
+            parentNodeId: $('#ParentNode').val(),
+        };
+        $.ajax({
+            url: "/Home/Add",
+            data: JSON.stringify(nodeObj),
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            dataType: "json",
+            success: function (result) {
+                $('#myModal').modal('hide');
+                loadData();
+
+            },
+            error: function (errormessage) {
+                alert(errormessage.responseText);
+            }
+        });
+    }
+
+    //Function for getting the Data Based upon Employee ID
+    function getbyID(ID) {
+        $('#Name').css('border-color', 'lightgrey');
+        $('#Age').css('border-color', 'lightgrey');
+        $('#State').css('border-color', 'lightgrey');
+        $.ajax({
+            url: "/Home/getbyID/" + ID,
+            typr: "GET",
+            contentType: "application/json;charset=UTF-8",
+            dataType: "json",
+            success: function (result) {
+                debugger
+                $('#nodeID').val(result.nodeId);
+                $('#Name').val(result.nodeName);
+                $('#ParentNode').val(result.parentNodeId);
+                var date = new Date(result.startDate);
+
+                var dateAr = result.startDate.split(' ')[0].split('-');
+                var newDate = dateAr[2] + '-' + dateAr[1] + '-' + dateAr[0];
+
+                //var format1 = moment(start_date).format('YYYY-MM-DD');
+                //$('#StartDate').val(newDate);
+                $('#ParentNode').trigger("change");
+               
+
+                $('#myModal').modal('show');
+                $('#btnUpdate').show();
+                $('#btnAdd').hide();
+            },
+            error: function (errormessage) {
+                alert(errormessage.responseText);
+            }
+        });
+        return false;
+    }
+
+    //function for updating employee's record
+    function Update() {
+        var res = validate();
+        if (res == false) {
+            return false;
+        }
+        var language = $("input[name=language]:checked").map(function () {
+            return this.value;
+        }).get().join(",");
+        var nodeObj = {
+            nodeId: $('#nodeID').val(),
+            nodeName: $('#Name').val(),
+            parentNodeId: $('#ParentNode').val(),
+        };
+        $.ajax({
+            url: "/Home/Update",
+            data: JSON.stringify(nodeObj),
+            type: "POST",
+            contentType: "application/json;charset=utf-8",
+            dataType: "json",
+            success: function (result) {
+                loadData();
+                $('#myModal').modal('hide');
+                $('#nodeID').val("");
+                $('#Name').val("");
+                $('#ParentNode').val("");
+               // $('#StartDate').val("");
+            },
+            error: function (errormessage) {
+                alert(errormessage.responseText);
+            }
+        });
+    }
+
+    //function for deleting employee's record
+    function Delele(ID) {
+        var ans = confirm("Are you sure you want to delete this Record?");
+        if (ans) {
+            $.ajax({
+                url: "/Home/Delete/" + ID,
+                type: "POST",
+                contentType: "application/json;charset=UTF-8",
+                dataType: "json",
+                success: function (result) {
+                    loadData();
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+        }
+    }
+
+    //Function for clearing the textboxes
+    function clearTextBox() {
+        $('#nodeID').val("");
+        $('#Name').val("");
+        $('#ParentNode').val("");
+        //$('#StartDate').val("");
+        $('#btnUpdate').hide();
+        $('#btnAdd').show();
+        $('#Name').css('border-color', 'lightgrey');
+        $('#ParentNode').css('border-color', 'lightgrey');
+        //$('#StartDate').css('border-color', 'lightgrey');
+    }
+    //Valdidation using jquery
+    function validate() {
+        var isValid = true;
+        if ($('#Name').val().trim() == "") {
+            $('#Name').css('border-color', 'Red');
+            isValid = false;
+        }
+        else {
+            $('#Name').css('border-color', 'lightgrey');
+        }
+       
+        return isValid;
+    }
+</script>

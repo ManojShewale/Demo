@@ -1,0 +1,108 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <title></title>
+    <link href="https://kendo.cdn.telerik.com/themes/8.0.1/default/default-main.css" rel="stylesheet" />
+    <script src="~/Scripts/jquery-3.7.0.js"></script>
+
+    <script src="https://kendo.cdn.telerik.com/2024.2.514/js/kendo.all.min.js"></script>
+
+
+</head>
+<div class="container">
+    <h2>Node Record</h2>
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>
+                    Name
+                </th>
+            </tr>
+        </thead>
+        <tbody id="tbody">
+        </tbody>
+    </table>
+</div>
+<div id="treeViewContainer"></div>
+
+<script>
+    var service = "https://demos.telerik.com/kendo-ui/service";
+
+    homogeneous = new kendo.data.HierarchicalDataSource({
+        transport: {
+            read: {
+                url: "/Home/gettreelist",
+                dataType: "jsonp",
+                success: function (res) {
+                    debugger
+                }
+            },
+            parameterMap: function (data, type) {
+                debugger
+                if (type == "read") {
+                    return JSON.stringify(data);
+                }
+            }
+        },
+        //data: (response: any) => {
+        //    debugger
+        //    // Augment returned data with a slice() method used internally by Kendo DataSource 
+        //    // in the absence of "schema.model" to obtain a pristine copy of the object.
+        //    response.slice = () => JSON.parse(JSON.stringify(response));
+        //    return response;
+        //},
+        //parse: function (data) {
+        //    debugger
+        //    response.slice = () => JSON.parse(JSON.stringify(response));
+        //    return response;
+        //},
+        schema: {
+            model: {
+                id: "Id",
+                hasChildren: "Children"
+            }
+        }
+    });
+    function buildTree(nodes, parentNode) {
+        debugger
+        nodes.forEach(function (nodeData) {
+            var $node = $("<li>").text(nodeData.text);
+
+            if (nodeData.nodes && nodeData.nodes.length > 0) {
+                var $childNodes = $("<ul>");
+                $node.append($childNodes);
+                buildTree(nodeData.nodes, $childNodes);
+            }
+
+            $node.appendTo(parentNode);
+        });
+    }
+    $.ajax({
+        url: "/Home/gettreelist",
+        type: "POST",
+        contentType: "application/json;charset=UTF-8",
+        dataType: "json",
+        success: function (result) {
+            debugger
+            var html = '';
+            $.each(result, function (key, item) {
+                html += '<tr>';
+                //html += '<td>' + item.EmployeeID + '</td>';
+                html += '<td>' + item.nodeName + '</td>';
+                html += '</tr>';
+            });
+            $("#tbody").html('');
+            $("#tbody").html(html);
+        },
+        error: function (errormessage) {
+            alert(errormessage.responseText);
+        }
+    });
+    // Build the initial tree structure
+    //Load Data function
+    $("#treeview").kendoTreeView({
+        dataSource: homogeneous,
+        dataTextField: ["Name"]
+    });
+    </script>
+</html >

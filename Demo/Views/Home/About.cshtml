@@ -1,0 +1,62 @@
+﻿@{
+    ViewBag.Title = "About";
+}
+<main aria-labelledby="title">
+    <h2 id="title">@ViewBag.Title.</h2>
+    <h3>@ViewBag.Message</h3>
+
+    <div id="treeViewContainer"></div>
+</main>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Sample data (can be fetched from an API or any data source)
+        var treeData = [
+            {
+                text: "Parent Node 1",
+                nodes: [
+                    {
+                        text: "Child Node 1"
+                    },
+                    {
+                        text: "Child Node 2"
+                    }
+                ]
+            },
+            {
+                text: "Parent Node 2",
+                nodes: [
+                    {
+                        text: "Child Node 3"
+                    },
+                    {
+                        text: "Child Node 4"
+                    }
+                ]
+            }
+        ];
+
+        // Function to recursively build the tree structure
+        function buildTree(nodes, parentNode) {
+            nodes.forEach(function (nodeData) {
+                var $node = $("<li>").text(nodeData.text);
+
+                if (nodeData.nodes && nodeData.nodes.length > 0) {
+                    var $childNodes = $("<ul>");
+                    $node.append($childNodes);
+                    buildTree(nodeData.nodes, $childNodes);
+                }
+
+                $node.appendTo(parentNode);
+            });
+        }
+
+        // Build the initial tree structure
+        buildTree(treeData, $("#treeViewContainer"));
+
+        // Handle click events to expand/collapse nodes
+        $("#treeViewContainer").on("click", "li", function () {
+            $(this).children("ul").toggle();
+        });
+    });
+</script>
