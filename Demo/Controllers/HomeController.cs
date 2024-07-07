@@ -61,9 +61,9 @@ namespace Demo.Controllers
                 Value = "0001"
             };
             var datas = _context.Database.SqlQuery<tblNode>("exec getAllNode @pOficio", oficio).ToList();
-            var data = GetData.BuildTree(datas);
+            //var data = GetData.BuildTree(datas);
             
-            var json = JsonConvert.SerializeObject(data);
+            //var json = JsonConvert.SerializeObject(data);
             return Json(datas, JsonRequestBehavior.AllowGet);
         }
         
@@ -87,7 +87,7 @@ namespace Demo.Controllers
                 Value = "0001"
             };
             var datas= _context.Database.SqlQuery<tblNode>("exec getAllNode @pOficio", oficio).ToList();
-            var data = GetData.BuildTree(datas);
+          //  var data = GetData.BuildTree(datas);
             return View();
         }
 
